@@ -364,6 +364,7 @@ def open_cashbox():
 
 @app.route('/hw_proxy/print_receipt')
 def print_receipt(receipt):
+    return str(request.args)
     _logger.info('ESC/POS: PRINT RECEIPT')
     driver.push_task('receipt',receipt)
     return "OK"
