@@ -1,5 +1,4 @@
 from flask import Flask
-app = Flask(__name__)
 
 # -*- coding: utf-8 -*-
 import logging
@@ -16,6 +15,9 @@ _logger = logging.getLogger(__name__)
 drivers = {}
 
 class Proxy():
+
+    def __init__(self):
+        self.app = Flask(__name__)
 
     def get_status(self):
         statuses = {}
