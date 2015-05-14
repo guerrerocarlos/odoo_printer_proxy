@@ -2,6 +2,8 @@
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 from flask import Flask
 app = Flask(__name__)
+#cors = CORS(app)
+from flask import request
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -38,6 +40,54 @@ from PIL import Image
 #from openerp.tools.translate import _
 
 _logger = logging.getLogger(__name__)
+
+from datetime import timedelta
+from flask import make_response, request, current_app
+from functools import update_wrapper
+
+
+def crossdomain(origin=None, methods=None, headers=None,
+                max_age=21600, attach_to_all=True,
+                automatic_options=True):
+    if methods is not None:
+        methods = ', '.join(sorted(x.upper() for x in methods))
+    if headers is not None and not isinstance(headers, basestring):
+        headers = ', '.join(x.upper() for x in headers)
+    if not isinstance(origin, basestring):
+        origin = ', '.join(origin)
+    if isinstance(max_age, timedelta):
+        max_age = max_age.total_seconds()
+
+    def get_methods():
+        if methods is not None:
+            return methods
+
+        options_resp = current_app.make_default_options_response()
+        return options_resp.headers['allow']
+
+    def decorator(f):
+        def wrapped_function(*args, **kwargs):
+            #if automatic_options and request.method == 'OPTIONS':
+            #    resp = current_app.make_default_options_response()
+            #else:
+            #    resp = make_response(f(*args, **kwargs))
+            resp = make_response(f(*args, **kwargs))
+            #if not attach_to_all and request.method != 'OPTIONS':
+            #    return resp
+
+            h = resp.headers
+
+            h['Access-Control-Allow-Origin'] = origin
+            h['Access-Control-Allow-Methods'] = get_methods()
+            #h['Access-Control-Max-Age'] = str(max_age)
+            if headers is not None:
+                h['Access-Control-Allow-Headers'] = headers
+            return resp
+
+        f.provide_automatic_options = False
+        #f.required_methods = ['OPTIONS'] 
+        return update_wrapper(wrapped_function, f)
+    return decorator
 
 
 class EscposDriver(Thread):
@@ -369,10 +419,31 @@ def print_receipt(receipt):
     driver.push_task('receipt',receipt)
     return "OK"
 
-@app.route('/hw_proxy/print_xml_receipt')
-def print_xml_receipt(receipt):
+@app.route('/hw_proxy/print_xml_receipt', methods=['POST', 'GET', 'OPTIONS'])
+@crossdomain(origin='*', methods=["GET", "POST", "OPTIONS"], headers= ['origin', 'content-type', 'accept'])
+def print_xml_receipt():
+    print "Print XML Receipt"
+    print request.args
+    print request.values
+    print request.application
+    print request.files
+    print request.form
+    print request.from_values
+    print request.full_path
+    print request.get_data()
+    print request.get_json()
+    print request.headers
+    print request.json
+    print request.method
+    print request.query_string
+    print request.view_args
+    #print request.environ
+    print ".."*5
+    print request.environ['werkzeug.request'].environ
+
+    print "--"
     _logger.info('ESC/POS: PRINT XML RECEIPT')
-    driver.push_task('xml_receipt',receipt)
+    #driver.push_task('xml_receipt',receipt)
     return "OK"
 
 @app.route('/hw_proxy/escpos/add_supported_device')
@@ -395,13 +466,17 @@ def get_status():
         statuses[driver] = drivers[driver].get_status()
     return statuses
 
-@app.route('/hw_proxy/hello')
+@app.route('/hw_proxy/hello', methods=['POST', 'GET', 'OPTIONS'])
+@crossdomain(origin='*', methods=["GET", "POST"], headers= ['origin', 'content-type', 'accept'])
+#@cross_origin()
 def hello():
     return "ping"
 
-@app.route('/hw_proxy/handshake')
+@app.route('/hw_proxy/handshake', methods=['GET', 'POST', 'OPTIONS'])
+@crossdomain(origin='*', methods=["GET", "POST", "OPTIONS"], headers= ['origin', 'content-type', 'accept'])
+#@cross_origin()
 def handshake():
-    return True
+    return '{"jsonrpc": "2.0", "id": 732348531, "result": true}' 
 
 @app.route('/hw_proxy/status')
 def status_http():
@@ -483,9 +558,10 @@ def status_http():
         'Access-Control-Allow-Methods': 'GET',
         })
 
-@app.route('/hw_proxy/status_json')
+@app.route('/hw_proxy/status_json', methods=['GET', 'POST', 'OPTIONS'])
+@crossdomain(origin='*', methods=["GET", "POST", "OPTIONS"], headers= ['origin', 'content-type', 'accept'])
 def status_json():
-    return str(get_status())
+    return '{"jsonrpc": "2.0", "id": 59527344, "result":'+str(get_status()).replace("'", '"')+'}'
 
 @app.route('/hw_proxy/scan_item_success')
 def scan_item_success(ean):
@@ -576,7 +652,7 @@ def print_pdf_invoice(pdfinvoice):
     print 'print_pdf_invoice' + str(pdfinvoice)
 
 @app.route("/")
-def hellow():
+def welcome():
     return "Hello World!"
 
 if __name__ == "__main__":

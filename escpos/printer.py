@@ -145,9 +145,9 @@ class Usb(Escpos):
 
     def __del__(self):
         """ Release USB interface """
-        if self.hw_device:
-            self.close()
-        self.hw_device = None
+        #if self.hw_device:
+        #    self.close()
+        #self.hw_device = None
 
 
 
@@ -185,8 +185,8 @@ class Serial(Escpos):
 
     def __del__(self):
         """ Close Serial interface """
-        if self.device is not None:
-            self.device.close()
+        #if self.device is not None:
+        #    self.device.close()
 
 
 
@@ -218,5 +218,5 @@ class Network(Escpos):
 
     def __del__(self):
         """ Close TCP connection """
-        self.device.close()
+        #self.device.close()
 
