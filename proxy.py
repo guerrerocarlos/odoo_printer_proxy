@@ -224,6 +224,7 @@ class EscposDriver(Thread):
                         self.open_cashbox(printer)
                 elif task == 'printstatus':
                     self.print_status(printer)
+                    pass
                 elif task == 'status':
                     pass
                 error = False
@@ -422,29 +423,17 @@ def print_receipt(receipt):
 @app.route('/hw_proxy/print_xml_receipt', methods=['POST', 'GET', 'OPTIONS'])
 @crossdomain(origin='*', methods=["GET", "POST", "OPTIONS"], headers= ['origin', 'content-type', 'accept'])
 def print_xml_receipt():
-    print "Print XML Receipt"
-    print request.args
-    print request.values
-    print request.application
-    print request.files
-    print request.form
-    print request.from_values
-    print request.full_path
-    print request.get_data()
-    print request.get_json()
-    print request.headers
-    print request.json
-    print request.method
-    print request.query_string
-    print request.view_args
-    #print request.environ
-    print ".."*5
-    print request.environ['werkzeug.request'].environ
 
-    print "--"
+    if(request.method!="OPTIONS"):
+        print ">> json"
+        print type(request.json)
+        print request.json['params']
+        receipt = request.json['params']['receipt']
+        print "pushing to driver" 
+        driver.push_task('xml_receipt',receipt)
+
     _logger.info('ESC/POS: PRINT XML RECEIPT')
-    #driver.push_task('xml_receipt',receipt)
-    return "OK"
+    return '{"jsonrpc": "2.0", "id": 885130883}'
 
 @app.route('/hw_proxy/escpos/add_supported_device')
 def add_supported_device(device_string):
