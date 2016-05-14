@@ -224,6 +224,9 @@ class EscposDriver(Thread):
                         self.open_cashbox(printer)
                 elif task == 'printstatus':
                     self.print_status(printer)
+                    self.open_cashbox(printer)
+                    self.open_cashbox(printer)
+                    self.open_cashbox(printer)
                     pass
                 elif task == 'status':
                     pass
@@ -423,6 +426,7 @@ def print_receipt(receipt):
     return str(request.args)
     _logger.info('ESC/POS: PRINT RECEIPT')
     driver.push_task('receipt',receipt)
+    driver.push_task('cashbox')
     return "OK"
 
 @app.route('/hw_proxy/print_xml_receipt', methods=['POST', 'GET', 'OPTIONS'])
@@ -436,8 +440,10 @@ def print_xml_receipt():
         receipt = request.json['params']['receipt']
         print "pushing to driver" 
         driver.push_task('xml_receipt',receipt)
+    	driver.push_task('cashbox')
 
     _logger.info('ESC/POS: PRINT XML RECEIPT')
+
     return '{"jsonrpc": "2.0", "id": 885130883}'
 
 @app.route('/hw_proxy/escpos/add_supported_device')
