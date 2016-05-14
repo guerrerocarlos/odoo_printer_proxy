@@ -260,9 +260,11 @@ class EscposDriver(Thread):
         eprint.text('PosBox Status\n')
         eprint.text('\n')
         eprint.set(align='center')
+        showed_error = False
 
-        if len(ips) == 0:
+        if len(ips) == 0 and showed_error == False:
             eprint.text('ERROR: Could not connect to LAN\n\nPlease check that the PosBox is correc-\ntly connected with a network cable,\n that the LAN is setup with DHCP, and\nthat network addresses are available')
+            showed_error = True
         elif len(ips) == 1:
             eprint.text('IP Address:\n'+ips[0]+'\n')
         else:
@@ -270,11 +272,14 @@ class EscposDriver(Thread):
             for ip in ips:
                 eprint.text(ip+'\n')
 
+        if len(ips) == 0:
+           time.sleep(5)
+           self.print_status(self, eprint)
+
         if len(ips) >= 1:
             eprint.text('\nHomepage:\nhttp://'+ips[0]+':8069\n')
-
-        eprint.text('\n\n')
-        eprint.cut()
+            eprint.text('\n\n')
+            eprint.cut()
 
     def print_receipt_body(self,eprint,receipt):
 
@@ -642,7 +647,7 @@ def print_pdf_invoice(pdfinvoice):
 
 @app.route("/")
 def welcome():
-    return "Hello World!"
+    return "Printer proxy working properly :)"
 
 if __name__ == "__main__":
     app.debug = True
